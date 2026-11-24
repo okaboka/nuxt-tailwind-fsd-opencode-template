@@ -1,0 +1,34 @@
+{
+  "name": "nuxt-tailwind-fsd-opencode-template",
+  "private": true,
+  "type": "module",
+  "description": "Nuxt 4 + Tailwind CSS 4 + FSD starter template",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "analyze": "npx nuxi analyze",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.11.0",
+    "@types/node": "^25.5.0",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.12",
+    "vue-component-type-helpers": "^3.2.5"
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.11.3",
+    "@tailwindcss/vite": "^4.1.18",
+    "@vueuse/core": "^14.1.0",
+    "@vueuse/nuxt": "^14.1.0",
+    "nuxt": "^4.2.1",
+    "tailwindcss": "^4.1.18"
+  },
+  "imports": {
+    "#main.css": "./src/assets/main.css"
+  }
+}

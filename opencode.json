@@ -1,0 +1,38 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "workflow",
+  "subagent_depth": 1,
+
+  "instructions": [
+    "AGENTS.md"
+  ],
+
+  "permission": {
+    "*": "allow",
+
+    "bash": {
+      "*": "allow",
+
+      "git *": "deny",
+
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git show*": "allow",
+      "git rev-parse*": "allow",
+      "git ls-files*": "allow",
+      "git blame*": "allow",
+      "git branch --list*": "allow",
+      "git remote -v": "allow",
+      "git tag --list*": "allow"
+    },
+
+    "edit": {
+      "*": "allow",
+      ".git/**": "deny",
+      "**/.git/**": "deny"
+    },
+
+    "external_directory": "deny"
+  }
+}
