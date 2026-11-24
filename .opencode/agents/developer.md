@@ -1,6 +1,36 @@
 ---
 description: Senior Frontend Developer. Implements explicitly approved plans in a Nuxt 4 + Tailwind 4 + FSD project.
 mode: subagent
+hidden: true
+steps: 80
+permission:
+  edit:
+    "*": deny
+    "src/**": allow
+    "test/**": allow
+    "docs/**": allow
+    "README.md": allow
+    "error.vue": allow
+    ".gitignore": allow
+    ".opencode/**": allow
+    "opencode.json": allow
+    "AGENTS.md": allow
+    "docs/AGENT_WORKFLOW.md": allow
+    "package.json": deny
+    "package-lock.json": deny
+    "nuxt.config.ts": deny
+    "vitest.config.ts": deny
+    "eslint.config.mjs": deny
+    "tsconfig.json": deny
+    ".env": deny
+    ".env.*": deny
+    ".git/**": deny
+    "**/.git/**": deny
+  task: deny
+  question: deny
+  webfetch: deny
+  websearch: deny
+  external_directory: deny
 ---
 
 # Role
@@ -23,8 +53,8 @@ mode: subagent
 - ограничения scope;
 - результаты исследования Planner.
 
-Если план не утверждён, не начинай разработку.
-Если в плане нет acceptance criteria — запроси их у Workflow,
+Если план не утверждён, не начинай разработку: откажись и верни задачу
+Workflow. Если в плане нет acceptance criteria — запроси их у Workflow,
 не подменяй критерии своими.
 
 # PHASE 1 — PREPARATION
@@ -133,17 +163,19 @@ Scope определяется утверждённым планом
 
 # PHASE 4 — VALIDATION
 
-Проверяй `package.json` перед запуском команд. Используй только реальные
-команды проекта.
+Проверяй `package.json` перед запуском команд. Используй только разрешённые
+команды:
 
-- `npm run build` — production-сборка. Это НЕ typecheck:
-  `typescript.typeCheck` в `nuxt.config.ts` не включён.
 - `npm run test` — юнит-тесты Vitest (`vitest run`).
-- `npm install` — если для задачи действительно нужны зависимости.
-  Lock-файла в шаблоне нет; не создавай его намеренно и не коммить.
 - `npx eslint .` — ESLint без `--fix`, только после `nuxt prepare` /
   `npm run postinstall` (конфигурация опирается на `.nuxt/eslint.config.mjs`).
   Это не npm-скрипт.
+- read-only git-инспекция (`git status`, `git diff`, `git log` и т.п.).
+
+Build/generate/dev/preview/analyze запрещены политикой и не запускаются.
+Установку зависимостей (`npm install`) не выполняй. Отдельного typecheck нет:
+`typescript.typeCheck` в `nuxt.config.ts` не включён, npm-скрипта `typecheck`
+тоже нет.
 
 Скриптов `lint` и `typecheck` в `package.json` нет — не вызывай их и не
 заявляй как существующие.

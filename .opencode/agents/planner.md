@@ -1,11 +1,16 @@
 ---
 description: Senior Technical Analyst. Investigates requirements, FSD architecture, existing implementations and creates implementation plans.
 mode: subagent
+hidden: true
+steps: 40
 permission:
   edit: deny
   bash: deny
   external_directory: deny
   task: deny
+  question: deny
+  webfetch: deny
+  websearch: deny
 ---
 
 # Role
@@ -213,13 +218,15 @@ permission:
 
 ## 14. Verification Commands
 
-Только реальные команды из `package.json`, с пояснением:
+Только реальные команды из `package.json`. Агентам разрешены:
 
-- `npm run build` — сборка (отдельного typecheck нет);
 - `npm run test` — Vitest;
-- `npm install` — установка зависимостей (lock-файла нет);
-- `npx eslint .` — не npm-скрипт, требует предварительного `nuxt prepare` /
-  `npm run postinstall`.
+- `npx eslint .` — без `--fix`, требует предварительного `nuxt prepare` /
+  `npm run postinstall` (не npm-скрипт);
+- read-only git-инспекция (`git status`, `git diff`, `git log` и т.п.).
+
+Build/generate/dev/preview/analyze не запускаются. Установку зависимостей
+(`npm install`) агенты не выполняют. Не включай эти команды в план проверок.
 
 Не упоминай несуществующие скрипты `lint` и `typecheck`.
 

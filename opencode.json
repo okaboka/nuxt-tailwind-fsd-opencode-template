@@ -8,31 +8,62 @@
   ],
 
   "permission": {
-    "*": "allow",
-
-    "bash": {
+    "read": {
       "*": "allow",
-
-      "git *": "deny",
-
-      "git status*": "allow",
-      "git diff*": "allow",
-      "git log*": "allow",
-      "git show*": "allow",
-      "git rev-parse*": "allow",
-      "git ls-files*": "allow",
-      "git blame*": "allow",
-      "git branch --list*": "allow",
-      "git remote -v": "allow",
-      "git tag --list*": "allow"
+      ".env": "deny",
+      ".env.*": "deny",
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
     },
 
     "edit": {
-      "*": "allow",
-      ".git/**": "deny",
-      "**/.git/**": "deny"
+      "*": "deny",
+      "**/.git/**": "deny",
+      ".git/**": "deny"
     },
 
-    "external_directory": "deny"
+    "bash": {
+      "*": "deny",
+
+      "git status": "allow",
+      "git status --short": "allow",
+      "git status --porcelain": "allow",
+      "git diff": "allow",
+      "git diff --stat": "allow",
+      "git diff --cached": "allow",
+      "git log": "allow",
+      "git log --oneline": "allow",
+      "git show": "allow",
+      "git show --stat": "allow",
+      "git branch --list": "allow",
+      "git rev-parse HEAD": "allow",
+      "git ls-files": "allow",
+      "git remote -v": "allow",
+      "git tag --list": "allow",
+      "npm run test": "allow",
+      "npm test": "allow",
+      "npx eslint .": "allow",
+
+      "*;*": "deny",
+      "*&&*": "deny",
+      "*||*": "deny",
+      "*|*": "deny",
+      "*>*": "deny",
+      "*>>*": "deny"
+    },
+
+    "task": "deny",
+    "question": "deny",
+    "webfetch": "deny",
+    "websearch": "deny",
+    "external_directory": "deny",
+
+    "skill": {
+      "*": "allow",
+      "nestjs-expert": "deny"
+    }
   }
 }

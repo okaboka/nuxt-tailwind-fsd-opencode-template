@@ -7,9 +7,44 @@
 
 Цикл: Planner → Workflow → утверждение пользователем → Developer → Reviewer →
 исправления (если нужны) → итоговый отчёт. Только Workflow общается с
-пользователем; Planner, Developer и Reviewer — subagent'ы без диалога с
+пользователем; Planner, Developer и Reviewer — hidden subagent'ы без диалога с
 пользователем. Реализация не начинается без явного утверждения плана
 (approval gate).
+
+Developer получает полный утверждённый план, acceptance criteria и ограничения
+scope; без утверждённого плана он отказывается и возвращает задачу Workflow.
+
+Не более 3 циклов исправлений. На 4-й цикл Workflow не переходит: останавливается,
+ставит `BLOCKED`, перечисляет неустранённые Critical/High и задаёт вопрос
+пользователю о дальнейших действиях.
+
+Финальный gate: задача завершена только при `Reviewer verdict = APPROVED`.
+Verdict `NEEDS FIXES` или `BLOCKED` означает, что задача не завершена.
+
+## Permissions агентов
+
+Источник истины — `opencode.json` и frontmatter `.opencode/agents/*.md`; здесь —
+краткая модель. Детальные инварианты — `AGENTS.md`.
+
+- Глобальный allow-all запрещён; `edit` глобально — `deny`, Developer — единственный
+  редактирующий агент. Ему разрешены `src/**`, `test/**`, `docs/**`, `README.md`,
+  `error.vue`, `.gitignore`, `.opencode/**`, `opencode.json`, `AGENTS.md`,
+  `docs/AGENT_WORKFLOW.md`; запрещены `package.json`, `package-lock.json`,
+  `nuxt.config.ts`, `vitest.config.ts`, `eslint.config.mjs`, `tsconfig.json`,
+  `.env`/`.env.*`, `.git/**`.
+- Developer может менять собственные permissions и глобальную конфигурацию
+  агентов — это принятый риск self-escalation. Reviewer обязан проверять, что
+  такие изменения входят в утверждённый план и не ослабляют защиту.
+- `bash` — точный allowlist: read-only git, `npm run test` / `npm test`,
+  `npx eslint .`; составные команды и редиректы запрещены.
+- `read` разрешён, кроме `.env` / `.env.*` (кроме `*.env.example`).
+- `task`, `question`, `webfetch`, `websearch`, `external_directory` глобально
+  `deny`; Workflow получает `question` и allowlist Planner/Developer/Reviewer.
+- build/generate/dev/preview/analyze агентам запрещены; сборка в отчётах —
+  «не запускалась (запрещена политикой)».
+- Границы и внешние инструменты: глобальные инструменты opencode (включая
+  MCP-серверы пользовательской конфигурации) вне проекта и проектными правилами
+  не ограничиваются.
 
 ## Неоднозначности и вопросы пользователю
 
@@ -169,13 +204,24 @@ PASS / FAIL / PARTIAL — <по пунктам>
 
 - JSON/YAML валиден; конфигурация opencode читается без ошибок.
 - `default_agent` указывает на primary-агента (`workflow`).
-- Subagent'ы `planner`, `developer`, `reviewer` описаны и корректно ограничены.
-- Permissions не дают `workflow` редактировать файлы и запускать Bash; правила
-  git не позволяют мутации.
+- Subagent'ы `planner`, `developer`, `reviewer` описаны, скрыты (`hidden: true`)
+  и корректно ограничены; `steps` задан (workflow/planner/reviewer — 40,
+  developer — 80).
+- Глобальный allow-all отсутствует; `edit`/`bash` по умолчанию `deny`;
+  Developer — единственный редактирующий агент в разрешённых границах.
+- Изменения `.opencode/**`, `opencode.json`, `AGENTS.md`,
+  `docs/AGENT_WORKFLOW.md` входят в утверждённый план, не ослабляют permissions
+  и не создают self-escalation сверх согласованного.
+- Bash — только точный allowlist; build/generate/dev/preview/analyze запрещены;
+  `.env`/`.env.*` запрещены для чтения (кроме `*.env.example`).
+- Config-invariant тест `test/unit/opencodeConfig.spec.ts` проходит и падает при
+  возврате allow-all.
 - Выполнен smoke test: opencode запускается и видит конфигурацию; если CLI
-  недоступен — статус NOT RUN с причиной.
-- `README.md` и `AGENTS.md` обновлены и не противоречат конфигурации.
-- Выполнены реальные проверки; неприменимые команды честно помечены.
+  недоступен — статус NOT RUN с причиной (smoke test выполняет человек).
+- `README.md`, `AGENTS.md` и этот документ обновлены и не противоречат
+  конфигурации.
+- Выполнены реальные проверки (`npm run test`, при доступном `.nuxt` —
+  `npx eslint .`); неприменимые команды честно помечены.
 
 ## Правило doc-drift
 
@@ -211,25 +257,26 @@ Docs описывают код. Если код расходится с docs, с
 | Изменение оркестрации, агентов, permissions | `.opencode/agents/`, `opencode.json`; ссылки в `README.md` |
 | Новые запреты/инварианты проекта | `AGENTS.md`; в `README.md` — ссылка, не копия |
 
-## Отсутствие lock-файла
+## Lock-файл
 
-`package-lock.json` в шаблоне отсутствует намеренно: зависимости не
-зафиксированы, и после первого `npm install` lock-файл создастся в вашем
-репозитории. Это осознанное решение, а не пропущенный артефакт. Установка
-зависимостей и подготовка окружения выполняются через `npm install`.
+`package-lock.json` отслеживается в git и фиксирует зависимости; не удаляйте его
+и не добавляйте в `.gitignore`. Это осознанное решение, а не пропущенный
+артефакт. Установка зависимостей и подготовка окружения выполняются человеком
+через `npm install`; агентам install-команды запрещены.
 
 ## Единственный источник истины
 
 | Тема | Файл |
 | --- | --- |
 | Расположение кода, команды, env-имена | `README.md` |
-| Правила, инварианты, FSD, проверки | `AGENTS.md` |
+| Правила, инварианты, FSD, проверки, security/permissions | `AGENTS.md` |
 | Процесс, handoff, definition of done | `docs/AGENT_WORKFLOW.md` |
 | Оркестрация агентов | `.opencode/agents/workflow.md` |
 | Конфигурация агентов и permissions | `opencode.json`, `.opencode/agents/` |
 | Неоднозначности, открытые вопросы, эскалация | `docs/AGENT_WORKFLOW.md` |
 
-При расхождении `AGENTS.md` и `docs/AGENT_WORKFLOW.md` приоритет у более
-конкретного документа по теме; код авторитетен для описания текущего поведения,
-но поведение, нарушающее утверждённый контракт или инвариант, — дефект; в этом
+У каждой темы один источник истины; остальные документы ссылаются на него, а не
+дублируют правило. При конфликте процессного текста с нормативным инвариантом
+приоритет у `AGENTS.md`. Код авторитетен для описания текущего поведения, но
+поведение, нарушающее утверждённый контракт или инвариант, — дефект: в этом
 случае правится код, а не docs (см. «Docs vs code»).
